@@ -184,18 +184,18 @@ void Player::Update()
 	pos = pos + SPEED * move;
 	XMStoreFloat3(&transform_.position_, pos);
 	XMFLOAT3 wpos = transform_.position_;
-	//壁オブジェクトに食い込んでたら戻す
-	std::vector<std::vector<int>> gmap = block_->GetMapData();
-	// プレイヤーがいるマス番号
-	int mapX = (int)(2 + 4 * (wpos.x - 5) + 18);
-	int mapZ = (int)(-2 + 4 * -(wpos.z - 5) - 18);
+	////壁オブジェクトに食い込んでたら戻す
+	//std::vector<std::vector<int>> gmap = block_->GetMapData();
+	//// プレイヤーがいるマス番号
+	//int mapX = (int)(2 + 4 * (wpos.x - 5) + 18);
+	//int mapZ = (int)(-2 + 4 * -(wpos.z - 5) - 18);
 
-	// 壁判定
-	if (gmap[mapZ][mapX] == 1)    // 1が壁の場合
-	{
-		pos = pos - SPEED * move;
-		XMStoreFloat3(&transform_.position_, pos);
-	}
+	//// 壁判定
+	//if (gmap[mapZ][mapX] == 1)    // 1が壁の場合
+	//{
+	//	pos = pos - SPEED * move;
+	//	XMStoreFloat3(&transform_.position_, pos);
+	//}
 
 	
 	//壁オブジェクトに食い込んでたら戻す！

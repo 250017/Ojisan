@@ -1,9 +1,13 @@
 #include "Block.h"
 #include "Engine/Model.h"
+#include "Engine/CsvReader.h"
+
 
 namespace
 {
 	using std::vector;
+
+	/*using std::vector;
 	int model_t = -1;
 	vector< vector<int>> mapData =
 	{
@@ -17,13 +21,26 @@ namespace
 		{1,1,1,1,1,0,1,1,1,0},
 		{1,1,0,0,0,0,1,0,0,0},
 		{1,0,0,1,1,1,1,0,0,0},
-	};
+	};*/
 }
 
 Block::Block(GameObject* parent)
-	:GameObject(parent, "Block"), hModel_(-1)
+	:GameObject(parent, "Block"), hModel_(-1), mapWidth_(-1), mapHeight_(-1)
 {
-	mapData_ = mapData; //ファイルグローバルのmapDataをコピーして、メンバ変数
+	CsvReader csvData;
+	csvData.Load("map.csv"); //scvファイルを読み込む
+	mapWidth_ = csvData.GetWidth();
+	mapHeight_ = csvData.GetHeight();
+
+	mapData_ = vector<vector<int>>(mapHeight_, vector<int>(mapWidth_, 0)); 
+	for (int x = 0; x < mapWidth_; x++)
+	{
+		for (int y = 0; y < mapHeight_; y++)
+		{
+			mapData_[y][x] = csvData.GetValue(x, y); //csvの値をmapData_に格納
+		}
+	}
+
 }
 
 //初期化
