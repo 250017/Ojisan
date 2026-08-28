@@ -3,6 +3,17 @@
 #include "Ground.h"
 #include "Block.h"
 #include "Enemy.h"
+#include "Food.h"
+#include "Engine/Text.h"
+
+namespace {
+	Player* player;
+	Enemy* enemy;
+	Ground* ground;
+	Block* block;
+}
+
+
 //コンストラクタ
 TestScene::TestScene(GameObject * parent)
 	: GameObject(parent, "TestScene")
@@ -13,13 +24,14 @@ TestScene::TestScene(GameObject * parent)
 void TestScene::Initialize()
 {	
 	//pWp = Instantiate<Weapon>(this);
-	Player* pPlayer = Instantiate <Player>(this);
-	Enemy* eEnemy = Instantiate <Enemy>(this);
-	Ground* pGround = Instantiate <Ground>(this);
-	Block* pBlock = Instantiate <Block>(this);
-	pPlayer->SetBlock(pBlock);
+	player = Instantiate <Player>(this);
+	enemy = Instantiate <Enemy>(this);
+	ground = Instantiate <Ground>(this);
+	block = Instantiate <Block>(this);
+	player->SetBlock(block);
 
-
+	pText_ = new Text;
+	pText_->Initialize();
 
 }
 
@@ -31,9 +43,13 @@ void TestScene::Update()
 //描画
 void TestScene::Draw()
 {
+	std::string scrText;
+	scrText = "SCORE;" + std::to_string(player->GetScore());
+	pText_->Draw(20, 20, scrText.c_str());
 }
 
 //開放
 void TestScene::Release()
 {
+	pText_->Release();//テキストの開放
 }

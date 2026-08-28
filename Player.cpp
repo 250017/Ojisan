@@ -5,6 +5,8 @@
 #include "Engine/Camera.h"
 #include "Engine/Input.h"
 #include "Block.h"
+#include <cmath>
+#include "Food.h"
 
 namespace
 {
@@ -52,6 +54,13 @@ namespace
 		return angle;
 	}
 
+
+	//プレイヤーがマップのどこにいるか
+	int mapX = 0;
+	int mapZ = 0;
+
+
+	Food* food;
 }
 //namespace
 //{
@@ -75,8 +84,11 @@ void Player::Initialize()
 	Model::SetAnimFrame(hIdleModel_, 0, 117, 1.0);
 	Camera::SetPosition({ 0, 20, -40 });
 	Camera::SetTarget({ 0, 0, 0 });
-	transform_.position_ = { 0, 0.0, 0 };
+	transform_.position_ = { 2.0f, 0.0f, 0.0f };
 
+
+	//スコアの初期化
+	score_ = 0;
 }
 
 void Player::Update()
@@ -185,18 +197,35 @@ void Player::Update()
 	XMStoreFloat3(&transform_.position_, pos);
 	XMFLOAT3 wpos = transform_.position_;
 	////壁オブジェクトに食い込んでたら戻す
-	//std::vector<std::vector<int>> gmap = block_->GetMapData();
-	//// プレイヤーがいるマス番号
-	//int mapX = (int)(2 + 4 * (wpos.x - 5) + 18);
-	//int mapZ = (int)(-2 + 4 * -(wpos.z - 5) - 18);
+	std::vector<std::vector<int>> gmap = block_->GetMapData();
+	// プレイヤーがいるマス番号
+	
+	if (wpos.x >= 0) mapX = (int)(wpos.x / 4) + 5;//+5 は調整した値　4はブロックの幅
+	else mapX = (int)(wpos.x) / 4 + 4;
+	if (wpos.z >= 0) mapZ = abs((int)((wpos.z + 2) / 4) -4);
+	else mapZ = (abs((int)(wpos.z / 4))) + 5;
 
-	//// 壁判定
-	//if (gmap[mapZ][mapX] == 1)    // 1が壁の場合
-	//{
-	//	pos = pos - SPEED * move;
-	//	XMStoreFloat3(&transform_.position_, pos);
-	//}
+	// 壁判定
+	if (gmap[mapZ][mapX] == 1)    // 1が壁の場合
+	{
+		pos = pos - SPEED * move;
+		XMStoreFloat3(&transform_.position_, pos);
 
+	}
+	if (gmap[mapZ][mapX] == 2)
+	{
+		Food* food = block_->GetFood(mapZ, mapX);
+		if (food != nullptr)
+		{
+			//スコアを足してオブジェクトを削除する
+			score_ += block_->RemoveFood(mapZ, mapX);;
+			food = nullptr;
+		}
+	}
+
+
+	//Debug::Log("score_ = ");
+	//Debug::Log(score_, true);
 	
 	//壁オブジェクトに食い込んでたら戻す！
 	
@@ -222,4 +251,9 @@ void Player::Draw()
 
 void Player::Release()
 {
+}
+
+int Player::GetScore()
+{
+	return score_;
 }
