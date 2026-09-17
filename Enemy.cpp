@@ -30,8 +30,8 @@ void Enemy::Update()
 void Enemy::Draw()
 {
 	transform_.scale_ = { 0.5, 0.5, 0.5 };
-	Model::SetTransform(hModel_, transform_);
-	Model::Draw(hModel_);
+	//Model::SetTransform(hModel_, transform_);
+	//Model::Draw(hModel_);
 }
 
 void Enemy::Release()

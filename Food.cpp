@@ -50,12 +50,12 @@ void Food::SetFoodType(FoodType type)
 	if (type_ == FoodType::FOODTYPE_NORMAL)
 	{
 		hModel_ = Model::Load("esa.fbx");
-		score_ = 1;
+		score_ = 10;
 	}
 	else if (type_ == FoodType::FOODTYPE_POWER)
 	{
 		hModel_ = Model::Load("poweresa.fbx");
-		score_ = 5;
+		score_ = 20;
 	}
 }
 
