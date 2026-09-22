@@ -30,6 +30,7 @@ public:
 private:
 	int hWalkModel_;//歩きアニメーションのモデルハンドル
 	int hIdleModel_;//待機アニメーションのモデルハンドル
+	bool IsJamp_;
 	Block* block_;//地面オブジェクトのポインタ
 	int score_;//スコア
 };

@@ -12,6 +12,7 @@ void Ground::Initialize()
 {
 	hModel_ = Model::Load("Ground.fbx");
 	assert(hModel_ >= 0);
+	transform_.rotate_.x = 270.0f;
 }
 
 //更新

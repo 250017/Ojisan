@@ -25,7 +25,8 @@ namespace
 		PLAYER_DOWN,
 		PLAYER_LEFT,
 		PLAYER_RIGHT,
-		PLAYER_DIRECTION_MAX//方向の数
+		PLAYER_DIRECTION_MAX,//方向の数
+		
 	};
 	
 	PLAYER_DIRECTION pdirection = PLAYER_DOWN;
@@ -57,7 +58,10 @@ namespace
 
 	//プレイヤーがマップのどこにいるか
 	int mapX = 0;
-	int mapZ = 0;
+	int mapY = 0;
+
+	float GRAVITY;
+	float jampSpeed;
 
 
 	Food* food;
@@ -89,147 +93,279 @@ void Player::Initialize()
 
 	//スコアの初期化
 	score_ = 0;
+
+	IsJamp_ = false;
+
+	GRAVITY = -0.3f;
+	jampSpeed = GRAVITY;
 }
 
 void Player::Update()
 {
-	//XMVECTOR vPos = XMLoadFloat3(&transform_.position_);//ロード：書き込み
-	//XMMATRIX matRot = XMMatrixRotationY(XMConvertToRadians(transform_.rotate_.y));//Y軸回転行列を作る
+	// プレイヤーの移動速度を設定する
+	const float SPEED = 0.3f;
 
-	//XMVECTOR vMove = XMVector3TransformCoord(vFront, matRot);
-	
-	//transform_.rotate_.y +=1;
-	//static float angle = 0.0;
-	//angle = angle + 0.3f;
-	//XMMATRIX scale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
-	//XMMATRIX rotateX = XMMatrixRotationX(XMConvertToRadians(angle));
-	//XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angle));
-	//XMMATRIX translate = XMMatrixTranslation(1.0f, 0.0f, 0.0f);
+	// 回転中の経過フレームを保持する
+	static float turnFrame = 0.0f;
 
-	//SetWorldMatrix(scale *  rotate * translate);
+	// 今回のフレームで使用する移動ベクトルを初期化する
+	XMVECTOR move = XMVectorZero();
 
-	//XMVECTOR front = { 0, 0, 1, 0 };
-	//XMMATRIX matRot = XMMatrixRotationY(XMConvertToRadians(transform_.rotate_.y));//Y軸回転行列を作る
-	//XMVECTOR move = XMVector3TransformCoord(front, matRot);
-	XMVECTOR move = XMVectorSet( 0, 0, 0, 0 );
-	const float SPEED = 0.1f;
-	static float turnFrame = 0.0f;//回転中のフレーム数を管理する変数
-	float angle = 0.0f;
-	if (pstate != PLAYER_STATE::PLAYER_TURN) {
+	// 移動前の座標を保存する
+	XMFLOAT3 oldPosition = transform_.position_;
+
+	// 重力を適用する前のY座標を保存する
+	float oldY = transform_.position_.y;
+
+	// 回転中でなければ待機状態へ戻す
+	if (pstate != PLAYER_TURN)
+	{
+		// プレイヤーを待機状態に設定する
 		pstate = PLAYER_IDLE;
-
 	}
 
-	PLAYER_DIRECTION oldDir = pdirection; //pdirection <= 今の向き
+	// 入力前の向きを保存する
+	PLAYER_DIRECTION oldDirection = pdirection;
 
-
-	
-
-	if (pstate != PLAYER_STATE::PLAYER_TURN)
+	// 回転中でなければキー入力を受け付ける
+	if (pstate != PLAYER_TURN)
 	{
+		// 左キーが押されているか確認する
 		if (Input::IsKey(DIK_LEFT))
 		{
-			pdirection = PLAYER_DIRECTION::PLAYER_LEFT;
-			pstate = PLAYER_STATE::PLAYER_WALK;
+			// プレイヤーを左向きにする
+			pdirection = PLAYER_LEFT;
+
+			// プレイヤーを歩行状態にする
+			pstate = PLAYER_WALK;
 		}
+
+		// 右キーが押されているか確認する
 		if (Input::IsKey(DIK_RIGHT))
 		{
-			pdirection = PLAYER_DIRECTION::PLAYER_RIGHT;
-			pstate = PLAYER_STATE::PLAYER_WALK;
+			// プレイヤーを右向きにする
+			pdirection = PLAYER_RIGHT;
+
+			// プレイヤーを歩行状態にする
+			pstate = PLAYER_WALK;
 		}
+
+		// 上キーが押されているか確認する
 		if (Input::IsKey(DIK_UP))
 		{
-			pdirection = PLAYER_DIRECTION::PLAYER_UP;
-			pstate = PLAYER_STATE::PLAYER_WALK;
+			// プレイヤーを上向きにする
+			pdirection = PLAYER_UP;
+
+			// プレイヤーを歩行状態にする
+			pstate = PLAYER_WALK;
 		}
+
+		// 下キーが押されているか確認する
 		if (Input::IsKey(DIK_DOWN))
 		{
-			pdirection = PLAYER_DIRECTION::PLAYER_DOWN;
-			pstate = PLAYER_STATE::PLAYER_WALK;
-		}
+			// プレイヤーを下向きにする
+			pdirection = PLAYER_DOWN;
 
+			// プレイヤーを歩行状態にする
+			pstate = PLAYER_WALK;
+		}
 	}
-	if (oldDir != pdirection) {
-		pstate = PLAYER_STATE::PLAYER_TURN;
+
+	// 入力によって向きが変わったか確認する
+	if (oldDirection != pdirection)
+	{
+		// プレイヤーを回転状態にする
+		pstate = PLAYER_TURN;
+
+		// 回転フレームを初期化する
 		turnFrame = 0.0f;
+
+		// 現在の角度を回転開始角度として保存する
 		turnStartAngle = transform_.rotate_.y;
 
-		turnEndDirection = pdirection;//入力方向に30フレームで回転する
+		// 入力された方向を回転終了後の方向として保存する
+		turnEndDirection = pdirection;
+
+		// 回転終了後の角度を取得する
 		turnEndAngle = P_ANGLE[turnEndDirection];
 	}
 
-	if (pstate == PLAYER_STATE::PLAYER_TURN)
+	// プレイヤーが回転中か確認する
+	if (pstate == PLAYER_TURN)
 	{
+		// 回転フレームを進める
 		turnFrame += 1.0f;
-		float t = turnFrame / TURN_FRAME; //0.0～1.0
-		//30フレームで回転
-		//回転中の処理
+
+		// 回転の進行度を計算する
+		float t = turnFrame / TURN_FRAME;
+
+		// 回転の進行度が1.0を超えないようにする
 		if (t > 1.0f)
 		{
-			t = 1.0f; //1.0を超えないようにする
+			// 回転の進行度を1.0に固定する
+			t = 1.0f;
 		}
 
-		//開始角度から終了角度までの差
+		// 開始角度と終了角度の差を計算する
 		float angleDifference = turnEndAngle - turnStartAngle;
 
-		// -180～180度にして、最短方向の角度差にする
+		// 最短方向へ回転するように角度差を調整する
 		angleDifference = AdjustAngle(angleDifference);
 
-		// 最短方向へ補間
-		float angle = turnStartAngle + angleDifference * t;
+		// 現在の回転角度を補間して求める
+		transform_.rotate_.y =
+			turnStartAngle + angleDifference * t;
 
-		transform_.rotate_.y = angle;
-		if (turnFrame >= TURN_FRAME) {
+		// 回転が完了したか確認する
+		if (turnFrame >= TURN_FRAME)
+		{
+			// 回転終了後の方向を設定する
 			pdirection = turnEndDirection;
+
+			// 回転終了後の角度を設定する
 			transform_.rotate_.y = P_ANGLE[pdirection];
-			pstate = PLAYER_STATE::PLAYER_WALK;
+
+			// プレイヤーを歩行状態にする
+			pstate = PLAYER_WALK;
 		}
+	}
+	else if (pstate == PLAYER_WALK)
+	{
+		// 現在向いている方向の移動ベクトルを取得する
+		move = P_MOVE[pdirection];
+
+		// 現在向いている方向の回転角度を設定する
+		transform_.rotate_.y = P_ANGLE[pdirection];
+	}
+
+	// 現在の座標をXMVECTORへ変換する
+	XMVECTOR position = XMLoadFloat3(&transform_.position_);
+
+	// 入力された方向へプレイヤーを移動させる
+	position = position + SPEED * move;
+
+	// 移動後の座標をプレイヤーへ戻す
+	XMStoreFloat3(&transform_.position_, position);
+
+	// 重力を適用する直前のY座標を保存する
+	oldY = transform_.position_.y;
+
+	//ジャんぷ処理
+	if (Input::IsKeyDown(DIK_SPACE) && IsJamp_ != true);
+	{
+		jampSpeed = 2.0f;
+		IsJamp_ = true;
+	}
+	if (jampSpeed >= GRAVITY)
+	{
+		jampSpeed += GRAVITY;
+	}
+	// プレイヤーを重力で下方向へ移動させる
+	transform_.position_.y += jampSpeed;
+
+	// Blockのポインタが有効か確認する
+	if (block_ == nullptr)
+	{
+		// Blockが取得できていない場合は処理を終了する
 		return;
 	}
-	else if (pstate != PLAYER_STATE::PLAYER_IDLE)
-	{
-		move = P_MOVE[pdirection];
-		angle = P_ANGLE[pdirection];
-		transform_.rotate_.y = angle;
-	}
-	XMVECTOR pos = XMLoadFloat3(&transform_.position_);
-	pos = pos + SPEED * move;
-	XMStoreFloat3(&transform_.position_, pos);
-	XMFLOAT3 wpos = transform_.position_;
-	////壁オブジェクトに食い込んでたら戻す
+
+	// 現在のマップデータを取得する
 	std::vector<std::vector<int>> gmap = block_->GetMapData();
-	// プレイヤーがいるマス番号
-	
-	if (wpos.x >= 0) mapX = (int)(wpos.x / 4) + 5;//+5 は調整した値　4はブロックの幅
-	else mapX = (int)(wpos.x) / 4 + 4;
-	if (wpos.z >= 0) mapZ = abs((int)((wpos.z + 2) / 4) -4);
-	else mapZ = (abs((int)(wpos.z / 4))) + 5;
 
-	// 壁判定
-	if (gmap[mapZ][mapX] == 1)    // 1が壁の場合
+	// マップデータが空か確認する
+	if (gmap.empty())
 	{
-		pos = pos - SPEED * move;
-		XMStoreFloat3(&transform_.position_, pos);
-
+		// マップデータがなければ処理を終了する
+		return;
 	}
-	if (gmap[mapZ][mapX] == 2)
+
+	// プレイヤーの現在座標を取得する
+	XMFLOAT3 worldPosition = transform_.position_;
+
+	// X座標が0以上か確認する
+	if (worldPosition.x >= 0.0f)
 	{
-		Food* food = block_->GetFood(mapZ, mapX);
-		if (food != nullptr)
+		// 正のX座標からマップの列番号を計算する
+		mapX = static_cast<int>(worldPosition.x / 4.0f) + 5;
+	}
+	else
+	{
+		// 負のX座標からマップの列番号を計算する
+		mapX = static_cast<int>(worldPosition.x / 4.0f) + 4;
+	}
+
+	// Y座標が0以上か確認する
+	if (worldPosition.y >= 0.0f)
+	{
+		// 正のY座標からマップの行番号を計算する
+		mapY = std::abs(
+			static_cast<int>((worldPosition.y + 2.0f) / 4.0f) - 4
+		);
+	}
+	else
+	{
+		// 負のY座標からマップの行番号を計算する
+		mapY =
+			std::abs(static_cast<int>(worldPosition.y / 4.0f)) + 5;
+	}
+
+	// マップの行番号が範囲外か確認する
+	if (mapY < 0 ||
+		mapY >= static_cast<int>(gmap.size()))
+	{
+		// Y座標だけを重力適用前の位置へ戻す
+		transform_.position_.y = oldY;
+
+		// 範囲外のvectorへアクセスせず処理を終了する
+		return;
+	}
+
+	// マップの列番号が範囲外か確認する
+	if (mapX < 0 ||
+		mapX >= static_cast<int>(gmap[mapY].size()))
+	{
+		// X座標だけを移動前の位置へ戻す
+		transform_.position_.x = oldPosition.x;
+
+		// 範囲外のvectorへアクセスせず処理を終了する
+		return;
+	}
+
+	// プレイヤーがいるマスの番号を取得する
+	int mapChip = gmap[mapY][mapX];
+
+	// 現在のマスが地面または壁か確認する
+	if (mapChip == 1)
+	{
+		// Y座標だけを重力適用前の位置へ戻す
+		transform_.position_.y = oldY;
+		IsJamp_ = false;
+	}
+	else if (mapChip == 2)
+	{
+		// 現在のマスに置かれているFoodを取得する
+		Food* currentFood = block_->GetFood(mapY, mapX);
+
+		// Foodが存在するか確認する
+		if (currentFood != nullptr)
 		{
-			//スコアを足してオブジェクトを削除する
-			score_ += block_->RemoveFood(mapZ, mapX);;
-			food = nullptr;
+			// Foodを削除してスコアを加算する
+			score_ += block_->RemoveFood(mapY, mapX);
 		}
 	}
 
+	// デバッグ画面へmapXの見出しを表示する
+	Debug::Log("mapX = ");
 
-	//Debug::Log("score_ = ");
-	//Debug::Log(score_, true);
-	
-	//壁オブジェクトに食い込んでたら戻す！
-	
+	// 現在のmapXを表示する
+	Debug::Log(mapX, true);
 
+	// デバッグ画面へmapYの見出しを表示する
+	Debug::Log("mapY = ");
+
+	// 現在のmapYを表示する
+	Debug::Log(mapY, true);
 }
 
 void Player::Draw()

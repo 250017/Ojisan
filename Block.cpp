@@ -39,6 +39,9 @@ void Block::Initialize()
 	mapWidth_ = csvData.GetWidth();
 	mapHeight_ = csvData.GetHeight();
 
+	//壁を2D化
+	transform_.rotate_.x = 270.0f;
+
 	mapData_ = vector<vector<int>>(mapHeight_, vector<int>(mapWidth_, 0));
 	for (int x = 0; x < mapWidth_; x++)
 	{
@@ -67,7 +70,7 @@ void Block::Initialize()
 			{
 				foods_[i][j] = Instantiate<Food>(this);
 				foods_[i][j]->SetFoodType(FoodType::FOODTYPE_NORMAL);
-				foods_[i][j]->SetPosition(XMFLOAT3(-40 + (j * 4), 0, 36 - (i % 10) * 4));
+				foods_[i][j]->SetPosition(XMFLOAT3(-40 + (j * 4), 36 - (i % 10) * 4, 0));
 				foods_[i][j]->SetScale(XMFLOAT3(1, 1, 1));
 			}
 			else if (mapData_[i][j] == 3)
@@ -101,7 +104,7 @@ void Block::Draw()
 		for (int j = 0; j < 11; j++)
 		{
 			if (mapData_[i][j] == 1) {
-				transform_.position_ = XMFLOAT3(2 + 4 * (j - 5), 0, -2 + 4 * -(i - 5));
+				transform_.position_ = XMFLOAT3(2 + 4 * (j - 5), -2 + 4 * -(i - 5), 0);
 				transform_.scale_ = XMFLOAT3(0.99f, 0.99f, 0.99f);
 				Model::SetTransform(hModel_, transform_);
 				Model::Draw(hModel_);

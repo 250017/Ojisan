@@ -16,6 +16,8 @@ void Food::Initialize()
 	score_ = 5;
 
 	hitfood_ = false;
+
+	transform_.rotate_.x = 270.0f;
 }
 
 void Food::Update()
