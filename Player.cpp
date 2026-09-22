@@ -7,6 +7,7 @@
 #include "Block.h"
 #include <cmath>
 #include "Food.h"
+#include "Engine/SceneManager.h"
 
 namespace
 {
@@ -55,6 +56,7 @@ namespace
 		return angle;
 	}
 
+	SceneManager* sceneManager;
 
 	//プレイヤーがマップのどこにいるか
 	int mapX = 0;
@@ -63,6 +65,15 @@ namespace
 	float GRAVITY;
 	float jampSpeed;
 
+	//プレイヤーの現在位置と前の位置
+	XMFLOAT3 playerPosition;
+	XMFLOAT3 playerOldPosition;
+	//カメラの位置と前の位置
+	XMFLOAT3 cameraPosition;
+	XMFLOAT3 cameraOldPosition;
+	//カメラのターゲットと前の位置
+	XMFLOAT3 cameraTarget;
+	XMFLOAT3 cameraOldTarget;
 
 	Food* food;
 }
@@ -90,6 +101,8 @@ void Player::Initialize()
 	Camera::SetTarget({ 0, 0, 0 });
 	transform_.position_ = { 2.0f, 0.0f, 0.0f };
 
+	cameraPosition = { transform_.position_.x, 20.0f, -40.0 };
+	cameraTarget = { transform_.position_.x, 0.0f, 0.0f };
 
 	//スコアの初期化
 	score_ = 0;
@@ -251,7 +264,7 @@ void Player::Update()
 	oldY = transform_.position_.y;
 
 	//ジャんぷ処理
-	if (Input::IsKeyDown(DIK_SPACE) && IsJamp_ != true);
+	if (Input::IsKeyDown(DIK_SPACE) && IsJamp_ == false)
 	{
 		jampSpeed = 2.0f;
 		IsJamp_ = true;
@@ -317,6 +330,8 @@ void Player::Update()
 		// Y座標だけを重力適用前の位置へ戻す
 		transform_.position_.y = oldY;
 
+		
+
 		// 範囲外のvectorへアクセスせず処理を終了する
 		return;
 	}
@@ -354,6 +369,46 @@ void Player::Update()
 			score_ += block_->RemoveFood(mapY, mapX);
 		}
 	}
+
+
+
+	//カメラのスクロール処理
+	playerPosition = transform_.position_;
+
+	
+	cameraPosition.x += 0.1;
+	cameraTarget.x += 0.1;
+	//カメラが見る位置もプレイヤーの座標へ合わせる
+
+	// シーン移動条件を確認する
+	if (playerPosition.x <= cameraPosition.x - 50.0f)
+	{
+		// Playerの親の親からSceneManagerを取得する
+		SceneManager* pSceneManager =
+			static_cast<SceneManager*>(
+				GetParent()->GetParent()
+				);
+
+		// Resultへ切り替える
+		pSceneManager->ChangeScene(SCENE_ID_RESULT);
+
+		// シーン変更後の処理を終了する
+		return;
+	}
+	
+
+
+
+	//playerOldPosition = playerPosition;
+	//cameraOldPosition = cameraPosition;
+	//cameraOldTarget = cameraTarget;
+
+	
+	//カメラの位置を更新
+	Camera::SetPosition(cameraPosition);
+
+	//カメラのターゲット更新
+	Camera::SetTarget(cameraTarget);
 
 	// デバッグ画面へmapXの見出しを表示する
 	Debug::Log("mapX = ");

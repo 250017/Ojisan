@@ -43,9 +43,9 @@ void Block::Initialize()
 	transform_.rotate_.x = 270.0f;
 
 	mapData_ = vector<vector<int>>(mapHeight_, vector<int>(mapWidth_, 0));
-	for (int x = 0; x < mapWidth_; x++)
+	for (int y = 0; y < mapHeight_; y++)
 	{
-		for (int y = 0; y < mapHeight_; y++)
+		for (int x = 0; x < mapWidth_; x++)
 		{
 			mapData_[y][x] = csvData.GetValue(x, y); //csvの値をmapData_に格納
 		}
@@ -58,22 +58,22 @@ void Block::Initialize()
 		}
 	}
 
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 11; j++)
+	for (int y = 0; y < mapHeight_ -1; y++) {
+		for (int x = 0; x < mapWidth_; x++)
 		{
-			//if (abs(i) % 2 == 1 && abs(j) % 2 == 1) {
-			//	transform_.position_ = XMFLOAT3(2 + 4 * i, 0, 2 + 4 * j);
+			//xf (abs(x) % 2 == 1 && abs(j) % 2 == 1) {
+			//	transform_.posxtxon_ = XMFLOAT3(2 + 4 * x, 0, 2 + 4 * j);
 			//	Model::SetTransform(hModel_, transform_);
 			//	Model::Draw(hModel_);
 			//}
-			if (mapData_[i][j] == 2)
+			if (mapData_[y][x] == 2)
 			{
-				foods_[i][j] = Instantiate<Food>(this);
-				foods_[i][j]->SetFoodType(FoodType::FOODTYPE_NORMAL);
-				foods_[i][j]->SetPosition(XMFLOAT3(-40 + (j * 4), 36 - (i % 10) * 4, 0));
-				foods_[i][j]->SetScale(XMFLOAT3(1, 1, 1));
+				foods_[y][x] =Instantiate<Food>(this);
+				foods_[y][x]->SetFoodType(FoodType::FOODTYPE_NORMAL);
+				foods_[y][x]->SetPosition(XMFLOAT3(-40 + (x * 4), 36 - (y * 10) * 4, 0));
+				foods_[y][x]->SetScale(XMFLOAT3(1, 1, 1));
 			}
-			else if (mapData_[i][j] == 3)
+			else if (mapData_[y][x] == 3)
 			{
 
 			}
@@ -96,15 +96,12 @@ void Block::Update()
 //描画
 void Block::Draw()
 {
-	int x = 10;
-	int z = 2;
-	Model::SetAnimFrame;
 
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 11; j++)
+	for (int y = 0; y < mapHeight_; y++) {
+		for (int x = 0; x < mapWidth_; x++)
 		{
-			if (mapData_[i][j] == 1) {
-				transform_.position_ = XMFLOAT3(2 + 4 * (j - 5), -2 + 4 * -(i - 5), 0);
+			if (mapData_[y][x] == 1) {
+				transform_.position_ = XMFLOAT3(2 + 4 * (x - 5), - 2 + 4 * -(y - 5), 0);
 				transform_.scale_ = XMFLOAT3(0.99f, 0.99f, 0.99f);
 				Model::SetTransform(hModel_, transform_);
 				Model::Draw(hModel_);

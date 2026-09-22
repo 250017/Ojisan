@@ -10,9 +10,12 @@ Ground::Ground(GameObject* parent)
 //初期化
 void Ground::Initialize()
 {
-	hModel_ = Model::Load("Ground.fbx");
+	hModel_ = Model::Load("BG.fbx");
 	assert(hModel_ >= 0);
-	transform_.rotate_.x = 270.0f;
+	transform_.rotate_.x = 0.0f;
+	transform_.position_.y = 20.0f;
+	transform_.position_.x = 40.0f;
+	transform_.scale_ = { 15.0f, 15.0f, 1.0 };
 }
 
 //更新

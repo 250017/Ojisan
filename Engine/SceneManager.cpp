@@ -4,6 +4,7 @@
 #include "Model.h"
 #include "Image.h"
 #include "Audio.h"
+#include "../Result.h"
 
 
 //コンストラクタ
@@ -39,8 +40,10 @@ void SceneManager::Update()
 		switch (nextSceneID_)
 		{
 		case SCENE_ID_TEST: Instantiate<TestScene>(this); break;
+		case SCENE_ID_RESULT: Instantiate<Result>(this); break;
 
 		}
+
 		Audio::Initialize();
 		currentSceneID_ = nextSceneID_;
 	}
