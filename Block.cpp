@@ -21,6 +21,9 @@ namespace
 		{1,1,0,0,0,0,1,0,0,0},
 		{1,0,0,1,1,1,1,0,0,0},
 	};*/
+
+	int moveTimer;
+	bool IsUP;
 }
 
 Block::Block(GameObject* parent)
@@ -41,6 +44,10 @@ void Block::Initialize()
 
 	//壁を2D化
 	transform_.rotate_.x = 270.0f;
+
+	//動く壁のタイマー
+	moveTimer = 0;
+	IsUP = false;
 
 	mapData_ = vector<vector<int>>(mapHeight_, vector<int>(mapWidth_, 0));
 	for (int y = 0; y < mapHeight_; y++)
@@ -91,17 +98,38 @@ void Block::Initialize()
 //更新
 void Block::Update()
 {
+	if (IsUP) 
+	{
+		moveTimer++;
+		//200の時左側に移動するため-2をしている
+		if (moveTimer > 200 - 2) IsUP = false; 
+	}
+	else
+	{
+		moveTimer--;
+		if (moveTimer < 1) IsUP = true;
+	}
+
+
 }
 
 //描画
 void Block::Draw()
 {
+	float movePos = (moveTimer % 200 - 100) / 10;
+
 
 	for (int y = 0; y < mapHeight_; y++) {
 		for (int x = 0; x < mapWidth_; x++)
 		{
 			if (mapData_[y][x] == 1) {
 				transform_.position_ = XMFLOAT3(2 + 4 * (x - 5), - 2 + 4 * -(y - 5), 0);
+				transform_.scale_ = XMFLOAT3(0.99f, 0.99f, 0.99f);
+				Model::SetTransform(hModel_, transform_);
+				Model::Draw(hModel_);
+			}
+			if (mapData_[y][x] == 11) {
+				transform_.position_ = XMFLOAT3((2 + 4 * (x - 5)) + movePos, -2 + 4 * -(y - 5), 0);
 				transform_.scale_ = XMFLOAT3(0.99f, 0.99f, 0.99f);
 				Model::SetTransform(hModel_, transform_);
 				Model::Draw(hModel_);

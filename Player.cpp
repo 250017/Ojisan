@@ -9,6 +9,10 @@
 #include "Food.h"
 #include "Engine/SceneManager.h"
 
+//X座標の当たり判定を考える
+
+
+
 namespace
 {
 	enum PLAYER_STATE
@@ -130,6 +134,9 @@ void Player::Update()
 	// 重力を適用する前のY座標を保存する
 	float oldY = transform_.position_.y;
 
+	//古いx座標
+	float oldX = transform_.position_.x;
+
 	// 回転中でなければ待機状態へ戻す
 	if (pstate != PLAYER_TURN)
 	{
@@ -163,25 +170,25 @@ void Player::Update()
 			pstate = PLAYER_WALK;
 		}
 
-		// 上キーが押されているか確認する
-		if (Input::IsKey(DIK_UP))
-		{
-			// プレイヤーを上向きにする
-			pdirection = PLAYER_UP;
+		//// 上キーが押されているか確認する
+		//if (Input::IsKey(DIK_UP))
+		//{
+		//	// プレイヤーを上向きにする
+		//	pdirection = PLAYER_UP;
 
-			// プレイヤーを歩行状態にする
-			pstate = PLAYER_WALK;
-		}
+		//	// プレイヤーを歩行状態にする
+		//	pstate = PLAYER_WALK;
+		//}
 
-		// 下キーが押されているか確認する
-		if (Input::IsKey(DIK_DOWN))
-		{
-			// プレイヤーを下向きにする
-			pdirection = PLAYER_DOWN;
+		//// 下キーが押されているか確認する
+		//if (Input::IsKey(DIK_DOWN))
+		//{
+		//	// プレイヤーを下向きにする
+		//	pdirection = PLAYER_DOWN;
 
-			// プレイヤーを歩行状態にする
-			pstate = PLAYER_WALK;
-		}
+		//	// プレイヤーを歩行状態にする
+		//	pstate = PLAYER_WALK;
+		//}
 	}
 
 	// 入力によって向きが変わったか確認する
@@ -263,6 +270,9 @@ void Player::Update()
 	// 重力を適用する直前のY座標を保存する
 	oldY = transform_.position_.y;
 
+	//移動前のX座標を保存
+	oldX = transform_.position_.x;
+
 	//ジャんぷ処理
 	if (Input::IsKeyDown(DIK_SPACE) && IsJamp_ == false)
 	{
@@ -274,7 +284,7 @@ void Player::Update()
 		jampSpeed += GRAVITY;
 	}
 	// プレイヤーを重力で下方向へ移動させる
-	transform_.position_.y += jampSpeed;
+	 if (IsJamp_) transform_.position_.y += jampSpeed;
 
 	// Blockのポインタが有効か確認する
 	if (block_ == nullptr)
@@ -330,7 +340,7 @@ void Player::Update()
 		// Y座標だけを重力適用前の位置へ戻す
 		transform_.position_.y = oldY;
 
-		
+		transform_.position_.x = oldX;
 
 		// 範囲外のvectorへアクセスせず処理を終了する
 		return;
@@ -356,6 +366,8 @@ void Player::Update()
 		// Y座標だけを重力適用前の位置へ戻す
 		transform_.position_.y = oldY;
 		IsJamp_ = false;
+
+		
 	}
 	else if (mapChip == 2)
 	{
@@ -369,15 +381,21 @@ void Player::Update()
 			score_ += block_->RemoveFood(mapY, mapX);
 		}
 	}
-
-
+	//壁の当たり判定
+	if (Input::IsKey(DIK_RIGHT) && mapChip == 1)
+	{
+		//x座標も戻す
+		transform_.position_.x = oldX;
+	}
 
 	//カメラのスクロール処理
 	playerPosition = transform_.position_;
 
-	
-	cameraPosition.x += 0.1;
-	cameraTarget.x += 0.1;
+	if (cameraPosition.x <= playerPosition.x)
+	{
+		cameraPosition.x = playerPosition.x;
+		cameraTarget.x = playerPosition.x;
+	}
 	//カメラが見る位置もプレイヤーの座標へ合わせる
 
 	// シーン移動条件を確認する
